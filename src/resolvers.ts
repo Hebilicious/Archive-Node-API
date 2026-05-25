@@ -33,6 +33,15 @@ const fullResolvers: Resolvers = {
         tracingState: new TracingState(graphQLSpan),
       });
     },
+    zkappCommands: async (_, { input }, context) => {
+      const graphQLSpan = setSpanNameFromGraphQLContext(
+        context,
+        'zkappCommands.graphql'
+      );
+      return context.db_client.getZkappCommands(input, {
+        tracingState: new TracingState(graphQLSpan),
+      });
+    },
     networkState: async (_, __, context) => {
       const graphQLSpan = setSpanNameFromGraphQLContext(
         context,

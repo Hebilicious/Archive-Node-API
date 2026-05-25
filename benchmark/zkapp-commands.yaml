@@ -1,0 +1,115 @@
+config:
+  target: 'http://localhost:8080'
+  phases:
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 25
+      name: 'zkappCommands warmup'
+    - duration: 180
+      arrivalRate: 25
+      rampTo: 100
+      name: 'zkappCommands sustained'
+  payload:
+    path: 'zkapp-commands.csv'
+    skipHeader: true
+    fields:
+      - 'from'
+      - 'to'
+      - 'accountPublicKey'
+      - 'tokenId'
+scenarios:
+  - name: 'Get zkApp commands by block range'
+    weight: 3
+    flow:
+      - post:
+          url: '/'
+          json:
+            query: |
+              query GetZkappCommandsQuery {
+                zkappCommands(input: { from: {{ from }}, to: {{ to }}, blockStatus: ALL }) {
+                  blockInfo {
+                    height
+                    stateHash
+                    parentHash
+                    timestamp
+                    chainStatus
+                    globalSlotSinceGenesis
+                    distanceFromMaxBlockHeight
+                  }
+                  hash
+                  feePayer
+                  fee
+                  memo
+                  status
+                  sequenceNumber
+                  accountUpdates {
+                    id
+                    publicKey
+                    tokenId
+                    authorizationKind
+                    balanceChange
+                    incrementNonce
+                    callDepth
+                    actions {
+                      fields
+                    }
+                    events {
+                      fields
+                    }
+                    appState {
+                      fields
+                    }
+                    accountPrecondition {
+                      state {
+                        fields
+                      }
+                      actionState {
+                        fields
+                      }
+                      provedState
+                      isNew
+                    }
+                    networkPrecondition {
+                      globalSlotSinceGenesis {
+                        lowerBound
+                        upperBound
+                      }
+                    }
+                  }
+                }
+              }
+          expect:
+            - statusCode: 200
+  - name: 'Get zkApp commands by filtered account update'
+    weight: 1
+    flow:
+      - post:
+          url: '/'
+          json:
+            query: |
+              query GetFilteredZkappCommandsQuery {
+                zkappCommands(input: { from: {{ from }}, to: {{ to }}, blockStatus: ALL, accountPublicKey: "{{ accountPublicKey }}", tokenId: "{{ tokenId }}" }) {
+                  blockInfo {
+                    height
+                    stateHash
+                  }
+                  hash
+                  sequenceNumber
+                  accountUpdates {
+                    id
+                    publicKey
+                    tokenId
+                    actions {
+                      fields
+                    }
+                    events {
+                      fields
+                    }
+                    appState {
+                      fields
+                    }
+                  }
+                }
+              }
+          expect:
+            - statusCode: 200

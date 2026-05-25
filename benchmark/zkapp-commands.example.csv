@@ -1,0 +1,3 @@
+from,to,accountPublicKey,tokenId
+1000,1100,B62replaceWithAccountUpdatePublicKey,1
+1100,2100,B62replaceWithAccountUpdatePublicKey,1

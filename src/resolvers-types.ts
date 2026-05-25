@@ -194,6 +194,7 @@ export type Query = {
   blocks: Array<Maybe<Block>>;
   events: Array<Maybe<EventOutput>>;
   networkState: NetworkStateOutput;
+  zkappCommands: Array<ZkappCommandOutput>;
 };
 
 export type QueryActionsArgs = {
@@ -208,6 +209,10 @@ export type QueryBlocksArgs = {
 
 export type QueryEventsArgs = {
   input: EventFilterOptionsInput;
+};
+
+export type QueryZkappCommandsArgs = {
+  input: ZkappCommandFilterOptionsInput;
 };
 
 export type TransactionInfo = {
@@ -242,6 +247,83 @@ export type ZkAppCommand = {
   hash: Scalars['String']['output'];
   memo: Scalars['String']['output'];
   status: Scalars['String']['output'];
+};
+
+export type ZkappAccountPrecondition = {
+  __typename?: 'ZkappAccountPrecondition';
+  actionState?: Maybe<ZkappFieldArray>;
+  isNew?: Maybe<Scalars['Boolean']['output']>;
+  provedState?: Maybe<Scalars['Boolean']['output']>;
+  state?: Maybe<ZkappFieldArray>;
+};
+
+export type ZkappAccountUpdateOutput = {
+  __typename?: 'ZkappAccountUpdateOutput';
+  accountPrecondition?: Maybe<ZkappAccountPrecondition>;
+  actions: Array<ZkappFieldArray>;
+  appState?: Maybe<ZkappFieldArray>;
+  authorizationKind: Scalars['String']['output'];
+  balanceChange: Scalars['String']['output'];
+  callDepth: Scalars['Int']['output'];
+  events: Array<ZkappFieldArray>;
+  id: Scalars['String']['output'];
+  incrementNonce: Scalars['Boolean']['output'];
+  networkPrecondition?: Maybe<ZkappNetworkPrecondition>;
+  publicKey: Scalars['String']['output'];
+  tokenId: Scalars['String']['output'];
+};
+
+/**
+ * Filter successful zkApp commands by block range.
+ *
+ * **WARNING**: The graphQL schema server will limit the block scan range to a fixed number of blocks. The default is 10,000 blocks, but can be changed by the host.
+ * It is the responsibility of the client to use a block range that is within the limit, which will guarantee that all zkApp commands are eventually returned. It is possible to get a partial result if you do not specify both a `from` and a `to` parameter.
+ */
+export type ZkappCommandFilterOptionsInput = {
+  /** Optional account update public key filter. */
+  accountPublicKey?: InputMaybe<Scalars['String']['input']>;
+  blockStatus?: InputMaybe<BlockStatusFilter>;
+  /** Mina block height to filter zkApp commands from, inclusive */
+  from?: InputMaybe<Scalars['Int']['input']>;
+  /** Mina block height to filter zkApp commands to, exclusive */
+  to?: InputMaybe<Scalars['Int']['input']>;
+  /** Optional account update token id filter. */
+  tokenId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ZkappCommandOutput = {
+  __typename?: 'ZkappCommandOutput';
+  accountUpdates: Array<ZkappAccountUpdateOutput>;
+  blockInfo: BlockInfo;
+  failureReason?: Maybe<Scalars['String']['output']>;
+  fee: Scalars['String']['output'];
+  feePayer: Scalars['String']['output'];
+  hash: Scalars['String']['output'];
+  memo: Scalars['String']['output'];
+  sequenceNumber: Scalars['Int']['output'];
+  status: Scalars['String']['output'];
+};
+
+/**
+ * Raw field array from the archive database.
+ *
+ * An empty `fields` array means the archive row exists but contains no field values.
+ * Nullable entries mean the corresponding nullable archive state slot has no field value.
+ */
+export type ZkappFieldArray = {
+  __typename?: 'ZkappFieldArray';
+  fields: Array<Maybe<Scalars['String']['output']>>;
+};
+
+export type ZkappGlobalSlotBounds = {
+  __typename?: 'ZkappGlobalSlotBounds';
+  lowerBound?: Maybe<Scalars['Int']['output']>;
+  upperBound?: Maybe<Scalars['Int']['output']>;
+};
+
+export type ZkappNetworkPrecondition = {
+  __typename?: 'ZkappNetworkPrecondition';
+  globalSlotSinceGenesis?: Maybe<ZkappGlobalSlotBounds>;
 };
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -387,6 +469,13 @@ export type ResolversTypes = {
   TransactionInfo: ResolverTypeWrapper<TransactionInfo>;
   UserCommand: ResolverTypeWrapper<UserCommand>;
   ZkAppCommand: ResolverTypeWrapper<ZkAppCommand>;
+  ZkappAccountPrecondition: ResolverTypeWrapper<ZkappAccountPrecondition>;
+  ZkappAccountUpdateOutput: ResolverTypeWrapper<ZkappAccountUpdateOutput>;
+  ZkappCommandFilterOptionsInput: ZkappCommandFilterOptionsInput;
+  ZkappCommandOutput: ResolverTypeWrapper<ZkappCommandOutput>;
+  ZkappFieldArray: ResolverTypeWrapper<ZkappFieldArray>;
+  ZkappGlobalSlotBounds: ResolverTypeWrapper<ZkappGlobalSlotBounds>;
+  ZkappNetworkPrecondition: ResolverTypeWrapper<ZkappNetworkPrecondition>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -413,6 +502,13 @@ export type ResolversParentTypes = {
   TransactionInfo: TransactionInfo;
   UserCommand: UserCommand;
   ZkAppCommand: ZkAppCommand;
+  ZkappAccountPrecondition: ZkappAccountPrecondition;
+  ZkappAccountUpdateOutput: ZkappAccountUpdateOutput;
+  ZkappCommandFilterOptionsInput: ZkappCommandFilterOptionsInput;
+  ZkappCommandOutput: ZkappCommandOutput;
+  ZkappFieldArray: ZkappFieldArray;
+  ZkappGlobalSlotBounds: ZkappGlobalSlotBounds;
+  ZkappNetworkPrecondition: ZkappNetworkPrecondition;
 };
 
 export type ActionDataResolvers<
@@ -672,6 +768,12 @@ export type QueryResolvers<
     ParentType,
     ContextType
   >;
+  zkappCommands?: Resolver<
+    Array<ResolversTypes['ZkappCommandOutput']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryZkappCommandsArgs, 'input'>
+  >;
 };
 
 export type TransactionInfoResolvers<
@@ -733,6 +835,129 @@ export type ZkAppCommandResolvers<
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type ZkappAccountPreconditionResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes['ZkappAccountPrecondition'] = ResolversParentTypes['ZkappAccountPrecondition'],
+> = {
+  actionState?: Resolver<
+    Maybe<ResolversTypes['ZkappFieldArray']>,
+    ParentType,
+    ContextType
+  >;
+  isNew?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  provedState?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >;
+  state?: Resolver<
+    Maybe<ResolversTypes['ZkappFieldArray']>,
+    ParentType,
+    ContextType
+  >;
+};
+
+export type ZkappAccountUpdateOutputResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes['ZkappAccountUpdateOutput'] = ResolversParentTypes['ZkappAccountUpdateOutput'],
+> = {
+  accountPrecondition?: Resolver<
+    Maybe<ResolversTypes['ZkappAccountPrecondition']>,
+    ParentType,
+    ContextType
+  >;
+  actions?: Resolver<
+    Array<ResolversTypes['ZkappFieldArray']>,
+    ParentType,
+    ContextType
+  >;
+  appState?: Resolver<
+    Maybe<ResolversTypes['ZkappFieldArray']>,
+    ParentType,
+    ContextType
+  >;
+  authorizationKind?: Resolver<
+    ResolversTypes['String'],
+    ParentType,
+    ContextType
+  >;
+  balanceChange?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  callDepth?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  events?: Resolver<
+    Array<ResolversTypes['ZkappFieldArray']>,
+    ParentType,
+    ContextType
+  >;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  incrementNonce?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  networkPrecondition?: Resolver<
+    Maybe<ResolversTypes['ZkappNetworkPrecondition']>,
+    ParentType,
+    ContextType
+  >;
+  publicKey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  tokenId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type ZkappCommandOutputResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes['ZkappCommandOutput'] = ResolversParentTypes['ZkappCommandOutput'],
+> = {
+  accountUpdates?: Resolver<
+    Array<ResolversTypes['ZkappAccountUpdateOutput']>,
+    ParentType,
+    ContextType
+  >;
+  blockInfo?: Resolver<ResolversTypes['BlockInfo'], ParentType, ContextType>;
+  failureReason?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
+  fee?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  feePayer?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  hash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  memo?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  sequenceNumber?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type ZkappFieldArrayResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes['ZkappFieldArray'] = ResolversParentTypes['ZkappFieldArray'],
+> = {
+  fields?: Resolver<
+    Array<Maybe<ResolversTypes['String']>>,
+    ParentType,
+    ContextType
+  >;
+};
+
+export type ZkappGlobalSlotBoundsResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes['ZkappGlobalSlotBounds'] = ResolversParentTypes['ZkappGlobalSlotBounds'],
+> = {
+  lowerBound?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  upperBound?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+};
+
+export type ZkappNetworkPreconditionResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes['ZkappNetworkPrecondition'] = ResolversParentTypes['ZkappNetworkPrecondition'],
+> = {
+  globalSlotSinceGenesis?: Resolver<
+    Maybe<ResolversTypes['ZkappGlobalSlotBounds']>,
+    ParentType,
+    ContextType
+  >;
+};
+
 export type Resolvers<ContextType = GraphQLContext> = {
   ActionData?: ActionDataResolvers<ContextType>;
   ActionOutput?: ActionOutputResolvers<ContextType>;
@@ -751,4 +976,10 @@ export type Resolvers<ContextType = GraphQLContext> = {
   TransactionInfo?: TransactionInfoResolvers<ContextType>;
   UserCommand?: UserCommandResolvers<ContextType>;
   ZkAppCommand?: ZkAppCommandResolvers<ContextType>;
+  ZkappAccountPrecondition?: ZkappAccountPreconditionResolvers<ContextType>;
+  ZkappAccountUpdateOutput?: ZkappAccountUpdateOutputResolvers<ContextType>;
+  ZkappCommandOutput?: ZkappCommandOutputResolvers<ContextType>;
+  ZkappFieldArray?: ZkappFieldArrayResolvers<ContextType>;
+  ZkappGlobalSlotBounds?: ZkappGlobalSlotBoundsResolvers<ContextType>;
+  ZkappNetworkPrecondition?: ZkappNetworkPreconditionResolvers<ContextType>;
 };
